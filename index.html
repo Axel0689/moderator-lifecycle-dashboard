@@ -4,24 +4,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moderator Lifecycle and Psychology - Analysis for Admins</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
+        /* === CSS Custom Properties === */
+        :root {
+            --bg-primary:     #111111;
+            --bg-surface:     #1a1a1a;
+            --bg-card:        #1e1e1e;
+            --bg-elevated:    #242424;
+            --accent:         #ffd000;
+            --accent-dim:     rgba(255, 208, 0, 0.07);
+            --accent-border:  rgba(255, 208, 0, 0.18);
+            --positive:       #4ade80;
+            --positive-dim:   rgba(74, 222, 128, 0.08);
+            --negative:       #ef4444;
+            --negative-dim:   rgba(239, 68, 68, 0.08);
+            --text-primary:   #f0f0f0;
+            --text-secondary: rgba(240, 240, 240, 0.65);
+            --text-tertiary:  rgba(240, 240, 240, 0.38);
+            --border-subtle:  rgba(255, 255, 255, 0.06);
+            --border-accent:  rgba(255, 208, 0, 0.15);
+            --shadow-card:    0 4px 28px rgba(0, 0, 0, 0.45), 0 1px 6px rgba(0, 0, 0, 0.3);
+            --shadow-glow:    0 0 40px rgba(255, 208, 0, 0.06);
+            --radius-sm:      6px;
+            --radius-md:      10px;
+            --radius-lg:      14px;
+            --t-fast:         0.15s ease;
+            --t-med:          0.28s ease;
+            --t-slow:         0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* === Reset === */
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html { scroll-behavior: smooth; }
+
         body {
-            background-color: #1a1a1a;
-            color: #ffffff;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
             line-height: 1.6;
+            min-height: 100vh;
         }
 
+        /* === Scroll Progress Bar === */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #ffaa00);
+            z-index: 9999;
+            transition: width 0.08s linear;
+            box-shadow: 0 0 10px rgba(255, 208, 0, 0.55);
+            pointer-events: none;
+        }
+
+        /* === Header === */
         .header {
-            background-color: #272727;
-            padding: 48px 64px;
-            border-bottom: 3px solid #ffd000;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(17, 17, 17, 0.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--border-accent);
+            padding: 40px 64px;
+            transition: padding var(--t-med), background var(--t-med), box-shadow var(--t-med);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 5%;
+            right: 5%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        .header.compact {
+            padding: 14px 64px;
+            background: rgba(17, 17, 17, 0.95);
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.6);
         }
 
         .header-content {
@@ -32,328 +106,615 @@
         .header-title-section {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 18px;
             margin-bottom: 16px;
+            transition: margin var(--t-med);
+        }
+
+        .header.compact .header-title-section {
+            margin-bottom: 0;
         }
 
         .header-icon {
-            width: 48px;
-            height: 48px;
-            color: #ffd000;
+            width: 42px;
+            height: 42px;
+            color: var(--accent);
+            flex-shrink: 0;
+            filter: drop-shadow(0 0 10px rgba(255, 208, 0, 0.35));
+            transition: width var(--t-med), height var(--t-med);
+        }
+
+        .header.compact .header-icon {
+            width: 26px;
+            height: 26px;
         }
 
         .header h1 {
-            font-size: 42px;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-            margin: 0;
+            font-size: clamp(22px, 3vw, 36px);
+            font-weight: 700;
+            letter-spacing: -0.8px;
+            line-height: 1.15;
+            transition: font-size var(--t-med);
+        }
+
+        .header.compact h1 {
+            font-size: clamp(15px, 2vw, 20px);
         }
 
         .header h2 {
-            font-size: 24px;
+            font-size: clamp(13px, 1.4vw, 17px);
             font-weight: 400;
-            color: #ffd000;
-            margin: 8px 0 0 0;
+            color: var(--accent);
+            margin: 5px 0 0 0;
+            transition: all var(--t-med);
+        }
+
+        .header.compact h2 {
+            display: none;
         }
 
         .header-meta {
             display: flex;
-            gap: 32px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 208, 0, 0.2);
-            font-size: 15px;
+            gap: 28px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border-accent);
+            font-size: 13px;
+            transition: all var(--t-med);
+            flex-wrap: wrap;
         }
 
-        .header-meta span.label {
-            opacity: 0.7;
+        .header.compact .header-meta {
+            display: none;
         }
 
-        .header-meta span.value {
-            font-weight: 600;
+        .header-meta-item {
+            display: flex;
+            gap: 6px;
+            align-items: center;
         }
 
+        .header-meta span.label { color: var(--text-secondary); }
+        .header-meta span.value { font-weight: 600; }
+
+        /* === Container === */
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 48px 64px;
+            padding: 52px 64px;
         }
 
+        /* === Introduction === */
         .introduction {
-            background-color: #272727;
-            padding: 32px;
-            border-radius: 8px;
-            margin-bottom: 48px;
-            border-left: 4px solid #ffd000;
-        }
-
-        .introduction h3 {
-            color: #ffd000;
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .introduction p {
-            font-size: 16px;
-            opacity: 0.95;
-            line-height: 1.8;
-        }
-
-        .main-title {
-            font-size: 32px;
-            font-weight: 600;
-            margin-bottom: 32px;
-            color: #ffd000;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            font-size: 16px;
-            line-height: 1.8;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-
-        .phase-card {
-            background-color: #272727;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 208, 0, 0.15);
-            margin-bottom: 24px;
+            background: linear-gradient(135deg, rgba(36, 36, 36, 0.9), rgba(28, 28, 28, 0.9));
+            padding: 30px 36px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 52px;
+            border: 1px solid var(--border-accent);
+            border-left: 4px solid var(--accent);
+            box-shadow: var(--shadow-card), var(--shadow-glow);
+            position: relative;
             overflow: hidden;
         }
 
+        .introduction::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255, 208, 0, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .introduction h3 {
+            color: var(--accent);
+            font-size: 10.5px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+        }
+
+        .introduction p {
+            font-size: 14.5px;
+            color: var(--text-secondary);
+            line-height: 1.9;
+        }
+
+        .introduction em {
+            color: var(--text-primary);
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        /* === Section headings === */
+        .main-title {
+            font-size: clamp(20px, 2.8vw, 30px);
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.7px;
+        }
+
+        .subtitle {
+            font-size: 14.5px;
+            line-height: 1.85;
+            margin-bottom: 40px;
+            color: var(--text-secondary);
+            max-width: 70ch;
+        }
+
+        /* === Phase Timeline Nav === */
+        .phase-timeline-nav {
+            position: relative;
+            margin-bottom: 44px;
+            padding: 26px 40px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+        }
+
+        .phase-timeline-nav::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(255, 208, 0, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .timeline-track {
+            position: absolute;
+            top: 50%;
+            left: 84px;
+            right: 84px;
+            height: 2px;
+            background: var(--border-subtle);
+            transform: translateY(-50%);
+            z-index: 0;
+            border-radius: 2px;
+        }
+
+        .timeline-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), rgba(255, 208, 0, 0.25));
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 2px;
+        }
+
+        .timeline-dots {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-dot-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-tertiary);
+            transition: color var(--t-med);
+            padding: 0 8px;
+            font-family: inherit;
+        }
+
+        .timeline-dot-btn:hover { color: var(--text-primary); }
+
+        .timeline-dot-btn:hover .dot-circle,
+        .timeline-dot-btn.active .dot-circle {
+            background: var(--accent);
+            color: #111;
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(255, 208, 0, 0.45);
+            transform: scale(1.12);
+        }
+
+        .timeline-dot-btn.active { color: var(--text-primary); }
+
+        .dot-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            font-variant-numeric: tabular-nums;
+            transition: all var(--t-med);
+            color: var(--text-secondary);
+        }
+
+        .dot-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* === Phase Cards (animate-on-scroll base state) === */
+        .phase-card {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-accent);
+            margin-bottom: 18px;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            /* Initial hidden state for scroll animation */
+            opacity: 0;
+            transform: translateY(22px);
+            transition: border-color var(--t-med), box-shadow var(--t-med);
+        }
+
+        .phase-card.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+            transition:
+                opacity 0.5s ease,
+                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color var(--t-med),
+                box-shadow var(--t-med);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .phase-card { opacity: 1; transform: none; }
+            .phase-card.animate-in { transition: border-color var(--t-med), box-shadow var(--t-med); }
+            .recommendations { opacity: 1; transform: none; }
+            .recommendations.animate-in { transition: none; }
+        }
+
+        .phase-card:hover {
+            border-color: rgba(255, 208, 0, 0.32);
+            box-shadow: var(--shadow-card), 0 0 50px rgba(255, 208, 0, 0.07);
+        }
+
+        /* === Phase Header === */
         .phase-header {
-            padding: 24px 32px;
+            padding: 22px 32px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s ease;
+            transition: background-color var(--t-fast);
+            min-height: 44px;
+            outline: none;
+        }
+
+        .phase-header:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: -2px;
         }
 
         .phase-header:hover {
-            background-color: rgba(255, 208, 0, 0.05);
+            background-color: rgba(255, 208, 0, 0.04);
         }
 
         .phase-header.expanded {
-            background-color: rgba(255, 208, 0, 0.08);
-            border-bottom: 1px solid rgba(255, 208, 0, 0.2);
+            background-color: rgba(255, 208, 0, 0.06);
+            border-bottom: 1px solid var(--border-accent);
         }
 
-        .phase-header-left {
-            flex: 1;
-        }
+        .phase-header-left { flex: 1; }
 
         .phase-title-row {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
             margin-bottom: 8px;
+            flex-wrap: wrap;
         }
 
         .phase-number {
-            background-color: #ffd000;
-            color: #1a1a1a;
-            width: 36px;
-            height: 36px;
+            background: linear-gradient(135deg, var(--accent) 0%, #ffa800 100%);
+            color: #111;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 17px;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+            box-shadow: 0 2px 14px rgba(255, 208, 0, 0.32);
         }
 
         .phase-title {
-            font-size: 24px;
+            font-size: clamp(17px, 2vw, 21px);
             font-weight: 600;
-            color: #ffd000;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
         }
 
-        .phase-timeline {
-            background-color: #1a1a1a;
-            padding: 6px 16px;
-            border-radius: 4px;
-            font-size: 13px;
+        .phase-timeline-pill {
+            background: var(--bg-primary);
+            padding: 3px 11px;
+            border-radius: 20px;
+            font-size: 11.5px;
             font-weight: 600;
-            color: #ffd000;
-            border: 1px solid rgba(255, 208, 0, 0.3);
+            color: var(--accent);
+            border: 1px solid var(--border-accent);
+            letter-spacing: 0.2px;
+            white-space: nowrap;
         }
 
         .phase-mental-state {
-            margin: 12px 0 0 52px;
-            font-size: 15px;
-            opacity: 0.8;
+            margin: 2px 0 0 52px;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+
+        .phase-mental-state strong {
+            color: var(--text-primary);
+            font-weight: 500;
         }
 
         .chevron {
             margin-left: 16px;
-            transition: transform 0.2s ease;
+            flex-shrink: 0;
+            color: var(--accent);
+            opacity: 0.6;
+            transition: transform var(--t-med), opacity var(--t-fast);
         }
 
         .chevron.rotated {
             transform: rotate(180deg);
+            opacity: 1;
         }
 
+        /* === Accordion (max-height transition) === */
         .phase-content {
-            padding: 32px;
-            display: none;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            padding: 0 32px;
+            transition:
+                max-height var(--t-slow),
+                opacity 0.3s ease,
+                padding 0.25s ease;
         }
 
         .phase-content.visible {
-            display: block;
+            max-height: 3200px;
+            opacity: 1;
+            padding: 32px;
         }
 
+        /* === Section Title === */
         .section-title {
-            color: #ffd000;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 12px;
+            color: var(--accent);
+            font-size: 10.5px;
+            font-weight: 700;
+            margin-bottom: 14px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1.4px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
         }
 
-        .behavior-section {
-            margin-bottom: 28px;
-        }
+        /* === Behavior Section === */
+        .behavior-section { margin-bottom: 26px; }
 
         .behavior-section ul {
             margin: 0;
-            padding-left: 20px;
+            padding-left: 0;
+            list-style: none;
         }
 
         .behavior-section li {
             margin-bottom: 8px;
-            font-size: 15px;
-            line-height: 1.7;
-            opacity: 0.95;
+            font-size: 14px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
         }
 
+        .behavior-section li::before {
+            content: '–';
+            color: var(--accent);
+            flex-shrink: 0;
+            opacity: 0.6;
+            margin-top: 1px;
+        }
+
+        /* === Bifurcation (Path Cards) === */
         .bifurcation {
-            margin-top: 16px;
-            padding-left: 20px;
+            margin-top: 14px;
+            padding-left: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .path-card {
-            margin-bottom: 12px;
-            padding: 12px 16px;
-            background-color: #1a1a1a;
-            border-radius: 6px;
+            padding: 14px 16px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
         }
 
         .path-card.positive {
-            border-left: 3px solid #4ade80;
+            border-left: 3px solid var(--positive);
+            background: linear-gradient(90deg, var(--positive-dim), transparent 80%);
         }
 
         .path-card.negative {
-            border-left: 3px solid #ef4444;
+            border-left: 3px solid var(--negative);
+            background: linear-gradient(90deg, var(--negative-dim), transparent 80%);
+        }
+
+        .path-icon {
+            width: 17px;
+            height: 17px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .path-icon.positive { color: var(--positive); }
+        .path-icon.negative { color: var(--negative); }
+
+        .path-text {
+            font-size: 14px;
+            line-height: 1.65;
+            color: var(--text-secondary);
         }
 
         .path-label {
-            font-size: 14px;
             font-weight: 600;
+            font-size: 12.5px;
+            display: block;
+            margin-bottom: 3px;
+            letter-spacing: 0.1px;
         }
 
-        .path-label.positive {
-            color: #4ade80;
-        }
+        .path-label.positive { color: var(--positive); }
+        .path-label.negative { color: var(--negative); }
 
-        .path-label.negative {
-            color: #ef4444;
-        }
-
-        .risk-section {
-            margin-bottom: 28px;
-        }
+        /* === Risk Section === */
+        .risk-section { margin-bottom: 26px; }
 
         .risk-card {
-            background-color: #1a1a1a;
-            padding: 16px;
-            border-radius: 6px;
-            border-left: 3px solid #ef4444;
-            margin-bottom: 12px;
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.06) 0%, transparent 80%);
+            padding: 15px 18px;
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--negative);
+            margin-bottom: 10px;
         }
+
+        .risk-card:last-child { margin-bottom: 0; }
 
         .risk-title {
             font-weight: 600;
-            font-size: 15px;
-            color: #ffffff;
-            margin-bottom: 6px;
+            font-size: 13.5px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
         }
 
         .risk-description {
-            font-size: 14px;
-            opacity: 0.85;
-            line-height: 1.6;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.65;
         }
 
+        /* === Admin Action === */
         .admin-action {
-            background-color: rgba(255, 208, 0, 0.08);
-            padding: 20px;
-            border-radius: 6px;
-            border: 2px solid rgba(255, 208, 0, 0.3);
+            background: rgba(255, 208, 0, 0.04);
+            padding: 22px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 208, 0, 0.18);
         }
 
         .admin-action p {
             margin: 0;
-            font-size: 15px;
-            line-height: 1.7;
-            opacity: 0.95;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-secondary);
         }
 
         .admin-action-item {
-            margin-bottom: 12px;
+            margin-bottom: 11px;
+            display: flex;
+            gap: 8px;
+            align-items: baseline;
+            flex-wrap: wrap;
         }
 
-        .admin-action-item:last-child {
-            margin-bottom: 0;
-        }
+        .admin-action-item:last-child { margin-bottom: 0; }
 
         .action-title {
-            color: #ffd000;
-            font-size: 15px;
+            color: var(--accent);
+            font-size: 13.5px;
             font-weight: 600;
+            flex-shrink: 0;
         }
 
+        .action-desc {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .icon {
+            width: 17px;
+            height: 17px;
+            vertical-align: middle;
+            color: var(--negative);
+            flex-shrink: 0;
+        }
+
+        /* === Recommendations === */
         .recommendations {
-            background-color: #272727;
-            padding: 40px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 208, 0, 0.15);
+            background: var(--bg-elevated);
+            padding: 44px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-accent);
+            box-shadow: var(--shadow-card), var(--shadow-glow);
+            margin-top: 48px;
+            opacity: 0;
+            transform: translateY(22px);
+        }
+
+        .recommendations.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.55s ease 0.08s, transform 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.08s;
         }
 
         .recommendations h2 {
-            color: #ffd000;
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 24px;
+            color: var(--text-primary);
+            font-size: clamp(18px, 2.4vw, 24px);
+            font-weight: 700;
+            margin-bottom: 28px;
             display: flex;
             align-items: center;
             gap: 12px;
             letter-spacing: -0.5px;
         }
 
+        .recommendations h2 svg { color: var(--accent); flex-shrink: 0; }
+
         .recommendation-card {
-            background-color: #1a1a1a;
-            padding: 24px;
-            border-radius: 6px;
-            border-left: 4px solid #ffd000;
-            margin-bottom: 20px;
+            background: var(--bg-primary);
+            padding: 22px 24px;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--accent);
+            margin-bottom: 14px;
             display: flex;
-            align-items: start;
-            gap: 16px;
+            align-items: flex-start;
+            gap: 18px;
+            transition: transform var(--t-fast), box-shadow var(--t-fast);
         }
 
-        .recommendation-card:last-child {
-            margin-bottom: 0;
+        .recommendation-card:last-child { margin-bottom: 0; }
+
+        .recommendation-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .recommendation-card:hover { transform: none; }
         }
 
         .recommendation-number {
-            background-color: #ffd000;
-            color: #1a1a1a;
+            background: linear-gradient(135deg, var(--accent), #ffa800);
+            color: #111;
             min-width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -361,59 +722,70 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 16px;
-            margin-top: 2px;
+            font-size: 14px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(255, 208, 0, 0.3);
+            margin-top: 1px;
         }
 
         .recommendation-content h3 {
-            color: #ffd000;
-            margin: 0 0 10px 0;
-            font-size: 18px;
+            color: var(--text-primary);
+            margin: 0 0 7px 0;
+            font-size: 15.5px;
             font-weight: 600;
+            letter-spacing: -0.2px;
         }
 
         .recommendation-content p {
             margin: 0;
-            line-height: 1.7;
-            opacity: 0.95;
-            font-size: 15px;
+            line-height: 1.78;
+            color: var(--text-secondary);
+            font-size: 13.5px;
         }
 
-        .icon {
-            width: 24px;
-            height: 24px;
-            vertical-align: middle;
+        /* === Footer === */
+        .footer {
+            text-align: center;
+            padding: 28px 64px 44px;
+            color: var(--text-tertiary);
+            font-size: 12px;
+            letter-spacing: 0.3px;
         }
 
+        /* === Responsive === */
         @media (max-width: 768px) {
-            .header, .container {
-                padding: 24px 32px;
-            }
+            .header, .container { padding: 18px 22px; }
+            .header.compact { padding: 12px 22px; }
+            .phase-header { padding: 18px 20px; }
+            .phase-content.visible { padding: 22px 20px; }
+            .phase-content { padding: 0 20px; }
+            .phase-mental-state { margin-left: 0; margin-top: 10px; }
+            .phase-title-row { flex-wrap: wrap; gap: 10px; }
+            .timeline-dot-btn .dot-label { display: none; }
+            .timeline-track { left: 28px; right: 28px; }
+            .phase-timeline-nav { padding: 20px 18px; }
+            .recommendations { padding: 26px 22px; }
+            .header-meta { flex-wrap: wrap; gap: 10px; }
+            .footer { padding: 22px; }
+        }
 
-            .header h1 {
-                font-size: 32px;
-            }
-
-            .header h2 {
-                font-size: 20px;
-            }
-
-            .phase-title {
-                font-size: 20px;
-            }
-
-            .main-title {
-                font-size: 26px;
-            }
+        @media (max-width: 480px) {
+            .timeline-track { display: none; }
+            .phase-timeline-nav { padding: 14px; }
+            .timeline-dots { gap: 4px; justify-content: center; }
+            .dot-circle { width: 36px; height: 36px; font-size: 14px; }
         }
     </style>
 </head>
 <body>
+    <!-- Scroll Progress Bar -->
+    <div id="scroll-progress" aria-hidden="true"></div>
+
     <!-- Header -->
-    <div class="header">
+    <header class="header" id="site-header">
         <div class="header-content">
             <div class="header-title-section">
-                <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -425,46 +797,78 @@
                 </div>
             </div>
             <div class="header-meta">
-                <div>
-                    <span class="label">Prepared by:</span>
+                <div class="header-meta-item">
+                    <span class="label">Prepared by</span>
                     <span class="value">Axel0689</span>
                 </div>
-                <div>
-                    <span class="label">For:</span>
+                <div class="header-meta-item">
+                    <span class="label">For</span>
                     <span class="value">Ruben, Kristof_c</span>
                 </div>
             </div>
         </div>
-    </div>
+    </header>
 
     <!-- Main Content -->
-    <div class="container">
+    <main class="container">
+
         <!-- Introduction -->
         <div class="introduction">
             <h3>Introduction</h3>
             <p>In response to the request to analyze moderator psychology, this document outlines the emotional and behavioral stages that a new moderator (such as <em>Breadbun</em> or <em>Kevin</em>) typically goes through. Understanding these phases allows us to anticipate problems, reduce turnover, and maintain a healthy environment.</p>
         </div>
 
-        <!-- Main Title -->
+        <!-- Section Title -->
         <h1 class="main-title">The 5 Phases of the Moderator Model</h1>
         <p class="subtitle">The psychology of a volunteer moderator follows a predictable arc. Not everyone goes through every phase at the same speed, but the model is cyclical.</p>
 
+        <!-- Phase Timeline Navigation -->
+        <nav class="phase-timeline-nav" aria-label="Phase navigation">
+            <div class="timeline-track" aria-hidden="true">
+                <div class="timeline-fill" id="timeline-fill"></div>
+            </div>
+            <div class="timeline-dots">
+                <button class="timeline-dot-btn active" onclick="scrollToPhase(1)" aria-label="Go to Phase 1: Honeymoon" data-phase="1">
+                    <span class="dot-circle">1</span>
+                    <span class="dot-label">Honeymoon</span>
+                </button>
+                <button class="timeline-dot-btn" onclick="scrollToPhase(2)" aria-label="Go to Phase 2: Disillusionment" data-phase="2">
+                    <span class="dot-circle">2</span>
+                    <span class="dot-label">Disillusion</span>
+                </button>
+                <button class="timeline-dot-btn" onclick="scrollToPhase(3)" aria-label="Go to Phase 3: Sheriff" data-phase="3">
+                    <span class="dot-circle">3</span>
+                    <span class="dot-label">Sheriff</span>
+                </button>
+                <button class="timeline-dot-btn" onclick="scrollToPhase(4)" aria-label="Go to Phase 4: Mastery" data-phase="4">
+                    <span class="dot-circle">4</span>
+                    <span class="dot-label">Mastery</span>
+                </button>
+                <button class="timeline-dot-btn" onclick="scrollToPhase(5)" aria-label="Go to Phase 5: Burnout" data-phase="5">
+                    <span class="dot-circle">5</span>
+                    <span class="dot-label">Burnout</span>
+                </button>
+            </div>
+        </nav>
+
         <!-- Phase 1 -->
-        <div class="phase-card">
-            <div class="phase-header expanded" onclick="togglePhase(1)">
+        <div class="phase-card" id="phase-card-1">
+            <div class="phase-header expanded" id="header-1"
+                 onclick="togglePhase(1)" role="button"
+                 aria-expanded="true" aria-controls="content-1" tabindex="0">
                 <div class="phase-header-left">
                     <div class="phase-title-row">
-                        <span class="phase-number">1</span>
+                        <span class="phase-number" aria-hidden="true">1</span>
                         <h3 class="phase-title">The "Honeymoon" Phase</h3>
-                        <span class="phase-timeline">Months 0-2</span>
+                        <span class="phase-timeline-pill">Months 0–2</span>
                     </div>
                     <p class="phase-mental-state"><strong>Mental State:</strong> Euphoria, gratitude for the role, hyper-activity</p>
                 </div>
-                <svg class="chevron" id="chevron-1" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffd000" stroke-width="2">
+                <svg class="chevron rotated" id="chevron-1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="18 15 12 9 6 15"></polyline>
                 </svg>
             </div>
-            <div class="phase-content visible" id="content-1">
+            <div class="phase-content visible" id="content-1" role="region" aria-labelledby="header-1">
                 <div class="behavior-section">
                     <h4 class="section-title">Behavior</h4>
                     <ul>
@@ -473,10 +877,9 @@
                         <li>They tend to be extremely formal and rigid in applying rules</li>
                     </ul>
                 </div>
-
                 <div class="risk-section">
                     <h4 class="section-title">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                             <line x1="12" y1="9" x2="12" y2="13"></line>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -492,7 +895,6 @@
                         <div class="risk-description">Fear of making mistakes in front of Admins</div>
                     </div>
                 </div>
-
                 <div class="admin-action">
                     <h4 class="section-title">Admin Action</h4>
                     <p>Monitor without being oppressive. Praise their effort but gently correct excessive rigidity. Important for Kevin if he accepts.</p>
@@ -501,21 +903,23 @@
         </div>
 
         <!-- Phase 2 -->
-        <div class="phase-card">
-            <div class="phase-header expanded" onclick="togglePhase(2)">
+        <div class="phase-card" id="phase-card-2">
+            <div class="phase-header expanded" id="header-2"
+                 onclick="togglePhase(2)" role="button"
+                 aria-expanded="true" aria-controls="content-2" tabindex="0">
                 <div class="phase-header-left">
                     <div class="phase-title-row">
-                        <span class="phase-number">2</span>
+                        <span class="phase-number" aria-hidden="true">2</span>
                         <h3 class="phase-title">The Reality Clash / Disillusionment</h3>
-                        <span class="phase-timeline">Months 2-6</span>
+                        <span class="phase-timeline-pill">Months 2–6</span>
                     </div>
                     <p class="phase-mental-state"><strong>Mental State:</strong> Frustration, negative surprise</p>
                 </div>
-                <svg class="chevron" id="chevron-2" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffd000" stroke-width="2">
+                <svg class="chevron rotated" id="chevron-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="18 15 12 9 6 15"></polyline>
                 </svg>
             </div>
-            <div class="phase-content visible" id="content-2">
+            <div class="phase-content visible" id="content-2" role="region" aria-labelledby="header-2">
                 <div class="behavior-section">
                     <h4 class="section-title">Behavior</h4>
                     <ul>
@@ -525,10 +929,9 @@
                         <li>Enthusiasm drops</li>
                     </ul>
                 </div>
-
                 <div class="risk-section">
                     <h4 class="section-title">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                             <line x1="12" y1="9" x2="12" y2="13"></line>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -544,7 +947,6 @@
                         <div class="risk-description">"Is it worth it?"</div>
                     </div>
                 </div>
-
                 <div class="admin-action">
                     <h4 class="section-title">Admin Action</h4>
                     <p>Emotional support. Explain that attacks are not personal. Be present during difficult conflicts.</p>
@@ -553,21 +955,23 @@
         </div>
 
         <!-- Phase 3 -->
-        <div class="phase-card">
-            <div class="phase-header expanded" onclick="togglePhase(3)">
+        <div class="phase-card" id="phase-card-3">
+            <div class="phase-header expanded" id="header-3"
+                 onclick="togglePhase(3)" role="button"
+                 aria-expanded="true" aria-controls="content-3" tabindex="0">
                 <div class="phase-header-left">
                     <div class="phase-title-row">
-                        <span class="phase-number">3</span>
+                        <span class="phase-number" aria-hidden="true">3</span>
                         <h3 class="phase-title">The "Sheriff" Phase or Settling In</h3>
-                        <span class="phase-timeline">Months 6-12</span>
+                        <span class="phase-timeline-pill">Months 6–12</span>
                     </div>
                     <p class="phase-mental-state"><strong>Mental State:</strong> Confidence, sometimes arrogance, or stability</p>
                 </div>
-                <svg class="chevron" id="chevron-3" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffd000" stroke-width="2">
+                <svg class="chevron rotated" id="chevron-3" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="18 15 12 9 6 15"></polyline>
                 </svg>
             </div>
-            <div class="phase-content visible" id="content-3">
+            <div class="phase-content visible" id="content-3" role="region" aria-labelledby="header-3">
                 <div class="behavior-section">
                     <h4 class="section-title">Behavior</h4>
                     <ul>
@@ -576,19 +980,30 @@
                     </ul>
                     <div class="bifurcation">
                         <div class="path-card positive">
-                            <span class="path-label positive">Path A (Positive):</span>
-                            <span style="font-size: 15px; margin-left: 8px; opacity: 0.95;">Becomes a calm and effective mentor</span>
+                            <svg class="path-icon positive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            <div class="path-text">
+                                <span class="path-label positive">Path A — Positive</span>
+                                Becomes a calm and effective mentor
+                            </div>
                         </div>
                         <div class="path-card negative">
-                            <span class="path-label negative">Path B (Negative - "God Complex"):</span>
-                            <span style="font-size: 15px; margin-left: 8px; opacity: 0.95;">Starts feeling superior to users. Becomes sarcastic, cynical, or uses bans as a weapon of personal power</span>
+                            <svg class="path-icon negative" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <div class="path-text">
+                                <span class="path-label negative">Path B — "God Complex"</span>
+                                Starts feeling superior to users. Becomes sarcastic, cynical, or uses bans as a weapon of personal power
+                            </div>
                         </div>
                     </div>
                 </div>
-
                 <div class="risk-section">
                     <h4 class="section-title">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                             <line x1="12" y1="9" x2="12" y2="13"></line>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -600,7 +1015,6 @@
                         <div class="risk-description">The "Curse of Knowledge"</div>
                     </div>
                 </div>
-
                 <div class="admin-action">
                     <h4 class="section-title">Admin Action</h4>
                     <p>CRUCIAL. If we notice cynicism (Path B), we must intervene immediately with private feedback. Remind them of the "passion to help others" they had at the beginning (as noted in Breadbun).</p>
@@ -609,21 +1023,23 @@
         </div>
 
         <!-- Phase 4 -->
-        <div class="phase-card">
-            <div class="phase-header expanded" onclick="togglePhase(4)">
+        <div class="phase-card" id="phase-card-4">
+            <div class="phase-header expanded" id="header-4"
+                 onclick="togglePhase(4)" role="button"
+                 aria-expanded="true" aria-controls="content-4" tabindex="0">
                 <div class="phase-header-left">
                     <div class="phase-title-row">
-                        <span class="phase-number">4</span>
+                        <span class="phase-number" aria-hidden="true">4</span>
                         <h3 class="phase-title">Integration and Mastery</h3>
-                        <span class="phase-timeline">1 year +</span>
+                        <span class="phase-timeline-pill">1 year+</span>
                     </div>
                     <p class="phase-mental-state"><strong>Mental State:</strong> Calm, routine, efficiency</p>
                 </div>
-                <svg class="chevron" id="chevron-4" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffd000" stroke-width="2">
+                <svg class="chevron rotated" id="chevron-4" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="18 15 12 9 6 15"></polyline>
                 </svg>
             </div>
-            <div class="phase-content visible" id="content-4">
+            <div class="phase-content visible" id="content-4" role="region" aria-labelledby="header-4">
                 <div class="behavior-section">
                     <h4 class="section-title">Behavior</h4>
                     <ul>
@@ -632,10 +1048,9 @@
                         <li>No need to prove anything</li>
                     </ul>
                 </div>
-
                 <div class="risk-section">
                     <h4 class="section-title">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                             <line x1="12" y1="9" x2="12" y2="13"></line>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -647,7 +1062,6 @@
                         <div class="risk-description">Feeling there is nothing left to learn</div>
                     </div>
                 </div>
-
                 <div class="admin-action">
                     <h4 class="section-title">Admin Action</h4>
                     <p>Assign new responsibilities (special projects, event management, training new arrivals) to keep interest alive.</p>
@@ -656,21 +1070,23 @@
         </div>
 
         <!-- Phase 5 -->
-        <div class="phase-card">
-            <div class="phase-header expanded" onclick="togglePhase(5)">
+        <div class="phase-card" id="phase-card-5">
+            <div class="phase-header expanded" id="header-5"
+                 onclick="togglePhase(5)" role="button"
+                 aria-expanded="true" aria-controls="content-5" tabindex="0">
                 <div class="phase-header-left">
                     <div class="phase-title-row">
-                        <span class="phase-number">5</span>
+                        <span class="phase-number" aria-hidden="true">5</span>
                         <h3 class="phase-title">Burnout or End of Cycle</h3>
-                        <span class="phase-timeline">Variable</span>
+                        <span class="phase-timeline-pill">Variable</span>
                     </div>
                     <p class="phase-mental-state"><strong>Mental State:</strong> Exhaustion, irritability, detachment</p>
                 </div>
-                <svg class="chevron" id="chevron-5" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffd000" stroke-width="2">
+                <svg class="chevron rotated" id="chevron-5" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="18 15 12 9 6 15"></polyline>
                 </svg>
             </div>
-            <div class="phase-content visible" id="content-5">
+            <div class="phase-content visible" id="content-5" role="region" aria-labelledby="header-5">
                 <div class="behavior-section">
                     <h4 class="section-title">Behavior</h4>
                     <ul>
@@ -678,10 +1094,9 @@
                         <li>Complains often in the staff channel</li>
                     </ul>
                 </div>
-
                 <div class="risk-section">
                     <h4 class="section-title">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                             <line x1="12" y1="9" x2="12" y2="13"></line>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -692,65 +1107,193 @@
                         <div class="risk-title">The Mod views the community as a burden and users as enemies</div>
                     </div>
                 </div>
-
                 <div class="admin-action">
                     <h4 class="section-title">Admin Action</h4>
                     <div class="admin-action-item">
                         <span class="action-title">Forced Break:</span>
-                        <span style="font-size: 15px; margin-left: 8px; opacity: 0.95;">Suggest 1-2 weeks of total stop</span>
+                        <span class="action-desc">Suggest 1–2 weeks of total stop</span>
                     </div>
                     <div class="admin-action-item">
                         <span class="action-title">Offboarding:</span>
-                        <span style="font-size: 15px; margin-left: 8px; opacity: 0.95;">If the passion is gone, allow them to leave the role with honor and gratitude before they become toxic</span>
+                        <span class="action-desc">If the passion is gone, allow them to leave the role with honor and gratitude before they become toxic</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Recommendations -->
-        <div class="recommendations">
+        <div class="recommendations" id="recommendations">
             <h2>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
-                General Recommendations (To-Do List)
+                General Recommendations
             </h2>
-
             <div class="recommendation-card">
-                <span class="recommendation-number">1</span>
+                <span class="recommendation-number" aria-hidden="true">1</span>
                 <div class="recommendation-content">
                     <h3>"Junior Mod" Channel</h3>
                     <p>As requested, create a separate chat. This reduces performance anxiety (Phase 1) because they don't have to "perform" in front of all Ambassadors immediately.</p>
                 </div>
             </div>
-
             <div class="recommendation-card">
-                <span class="recommendation-number">2</span>
+                <span class="recommendation-number" aria-hidden="true">2</span>
                 <div class="recommendation-content">
                     <h3>Monthly Check-in</h3>
                     <p>I or Kristof will have a brief DM chat with them every month to gauge their emotional pulse (not technical).</p>
                 </div>
             </div>
-
             <div class="recommendation-card">
-                <span class="recommendation-number">3</span>
+                <span class="recommendation-number" aria-hidden="true">3</span>
                 <div class="recommendation-content">
                     <h3>Rotation</h3>
                     <p>If we see signs of fatigue, rotate tasks (e.g., from chat moderation to ticket management).</p>
                 </div>
             </div>
         </div>
-    </div>
+
+    </main>
+
+    <footer class="footer">
+        Prepared by Axel0689 &middot; For Ruben &amp; Kristof_c
+    </footer>
 
     <script>
+        /* ===========================
+           Scroll Progress Bar
+        =========================== */
+        const progressBar = document.getElementById('scroll-progress');
+
+        function updateProgress() {
+            const scrollTop  = window.scrollY;
+            const docHeight  = document.documentElement.scrollHeight - window.innerHeight;
+            const pct        = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            progressBar.style.width = pct + '%';
+        }
+
+        window.addEventListener('scroll', updateProgress, { passive: true });
+
+        /* ===========================
+           Sticky Header (compact on scroll)
+        =========================== */
+        const siteHeader = document.getElementById('site-header');
+
+        function updateHeader() {
+            siteHeader.classList.toggle('compact', window.scrollY > 80);
+        }
+
+        window.addEventListener('scroll', updateHeader, { passive: true });
+
+        /* ===========================
+           Accordion Toggle (FIXED)
+        =========================== */
         function togglePhase(phaseId) {
             const content = document.getElementById('content-' + phaseId);
             const chevron = document.getElementById('chevron-' + phaseId);
-            const header = content.previousElementSibling;
+            const header  = document.getElementById('header-' + phaseId);
+            const isOpen  = content.classList.contains('visible');
 
-            if (content.classList.contains('visible')) {
+            if (isOpen) {
                 content.classList.remove('visible');
                 header.classList.remove('expanded');
                 chevron.classList.remove('rotated');
-            } else
+                header.setAttribute('aria-expanded', 'false');
+            } else {
+                content.classList.add('visible');
+                header.classList.add('expanded');
+                chevron.classList.add('rotated');
+                header.setAttribute('aria-expanded', 'true');
+            }
+
+            updateTimelineFill();
+        }
+
+        /* Keyboard accessibility for accordion headers */
+        document.querySelectorAll('.phase-header').forEach(function(header) {
+            header.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    header.click();
+                }
+            });
+        });
+
+        /* ===========================
+           Timeline: fill bar + active dot
+        =========================== */
+        function updateTimelineFill() {
+            var openPhases = [];
+            for (var i = 1; i <= 5; i++) {
+                var c = document.getElementById('content-' + i);
+                if (c && c.classList.contains('visible')) openPhases.push(i);
+            }
+
+            var lastOpen = openPhases.length > 0 ? Math.max.apply(null, openPhases) : 0;
+            var fill     = document.getElementById('timeline-fill');
+
+            if (fill) {
+                fill.style.width = lastOpen > 0 ? ((lastOpen - 1) / 4 * 100) + '%' : '0%';
+            }
+
+            document.querySelectorAll('.timeline-dot-btn').forEach(function(btn) {
+                var phase = parseInt(btn.dataset.phase, 10);
+                btn.classList.toggle('active', phase === lastOpen);
+            });
+        }
+
+        function scrollToPhase(phaseId) {
+            var card = document.getElementById('phase-card-' + phaseId);
+            if (!card) return;
+
+            /* Open the phase if it's closed */
+            var content = document.getElementById('content-' + phaseId);
+            if (content && !content.classList.contains('visible')) {
+                togglePhase(phaseId);
+            }
+
+            /* Offset scroll to account for sticky header */
+            var headerH = siteHeader.getBoundingClientRect().height;
+            var top     = card.getBoundingClientRect().top + window.scrollY - headerH - 16;
+            window.scrollTo({ top: top, behavior: 'smooth' });
+        }
+
+        /* ===========================
+           Intersection Observer — animate cards on scroll
+        =========================== */
+        var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!prefersReducedMotion) {
+            var observerOpts = { threshold: 0.06, rootMargin: '0px 0px -32px 0px' };
+
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-in');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOpts);
+
+            /* Short delay so the IO fires after first paint */
+            setTimeout(function() {
+                document.querySelectorAll('.phase-card, .recommendations').forEach(function(el) {
+                    observer.observe(el);
+                });
+            }, 60);
+        } else {
+            /* Skip animation — make everything visible immediately */
+            document.querySelectorAll('.phase-card, .recommendations').forEach(function(el) {
+                el.classList.add('animate-in');
+            });
+        }
+
+        /* ===========================
+           Init
+        =========================== */
+        updateProgress();
+        updateHeader();
+        updateTimelineFill();
+    </script>
+</body>
+</html>
